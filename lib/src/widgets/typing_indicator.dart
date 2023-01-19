@@ -1,3 +1,4 @@
+import 'package:extended_image/extended_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
 import '../../flutter_chat_ui.dart';
@@ -383,7 +384,7 @@ class TypingAvatar extends StatelessWidget {
       backgroundColor: hasImage
           ? InheritedChatTheme.of(context).theme.userAvatarImageBackgroundColor
           : color,
-      backgroundImage: hasImage ? NetworkImage(author.imageUrl!) : null,
+      backgroundImage: hasImage ? ExtendedNetworkImageProvider(author.imageUrl!, cache: true) : null,
       radius: 13,
       child: !hasImage
           ? Text(
