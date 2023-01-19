@@ -339,7 +339,6 @@ class ChatState extends State<Chat> {
   List<PreviewImage> _gallery = [];
   PageController? _galleryPageController;
   bool _hadScrolledToUnreadOnOpen = false;
-  bool _isImageViewVisible = false;
 
   /// Keep track of all the auto scroll indices by their respective message's id to allow animating to them.
   final Map<String, int> _autoScrollIndexById = {};
@@ -413,73 +412,60 @@ class ChatState extends State<Chat> {
           theme: widget.theme,
           child: InheritedL10n(
             l10n: widget.l10n,
-            child: Stack(
-              children: [
-                Container(
-                  color: widget.theme.backgroundColor,
-                  child: Column(
-                    children: [
-                      Flexible(
-                        child: widget.messages.isEmpty
-                            ? SizedBox.expand(
-                                child: _emptyStateBuilder(),
-                              )
-                            : GestureDetector(
-                                onTap: () {
-                                  FocusManager.instance.primaryFocus?.unfocus();
-                                  widget.onBackgroundTap?.call();
-                                },
-                                child: LayoutBuilder(
-                                  builder: (
-                                    BuildContext context,
-                                    BoxConstraints constraints,
-                                  ) =>
-                                      ChatList(
-                                    bottomWidget: widget.listBottomWidget,
-                                    bubbleRtlAlignment:
-                                        widget.bubbleRtlAlignment!,
-                                    isLastPage: widget.isLastPage,
-                                    itemBuilder: (Object item, int? index) =>
-                                        _messageBuilder(
-                                      item,
-                                      constraints,
-                                      index,
-                                    ),
-                                    items: _chatMessages,
-                                    keyboardDismissBehavior:
-                                        widget.keyboardDismissBehavior,
-                                    onEndReached: widget.onEndReached,
-                                    onEndReachedThreshold:
-                                        widget.onEndReachedThreshold,
-                                    scrollController: _scrollController,
-                                    scrollPhysics: widget.scrollPhysics,
-                                    typingIndicatorOptions:
-                                        widget.typingIndicatorOptions,
-                                    useTopSafeAreaInset:
-                                        widget.useTopSafeAreaInset ?? isMobile,
-                                  ),
+            child: Container(
+              color: widget.theme.backgroundColor,
+              child: Column(
+                children: [
+                  Flexible(
+                    child: widget.messages.isEmpty
+                        ? SizedBox.expand(
+                            child: _emptyStateBuilder(),
+                          )
+                        : GestureDetector(
+                            onTap: () {
+                              FocusManager.instance.primaryFocus?.unfocus();
+                              widget.onBackgroundTap?.call();
+                            },
+                            child: LayoutBuilder(
+                              builder: (
+                                BuildContext context,
+                                BoxConstraints constraints,
+                              ) =>
+                                  ChatList(
+                                bottomWidget: widget.listBottomWidget,
+                                bubbleRtlAlignment: widget.bubbleRtlAlignment!,
+                                isLastPage: widget.isLastPage,
+                                itemBuilder: (Object item, int? index) =>
+                                    _messageBuilder(
+                                  item,
+                                  constraints,
+                                  index,
                                 ),
+                                items: _chatMessages,
+                                keyboardDismissBehavior:
+                                    widget.keyboardDismissBehavior,
+                                onEndReached: widget.onEndReached,
+                                onEndReachedThreshold:
+                                    widget.onEndReachedThreshold,
+                                scrollController: _scrollController,
+                                scrollPhysics: widget.scrollPhysics,
+                                typingIndicatorOptions:
+                                    widget.typingIndicatorOptions,
+                                useTopSafeAreaInset:
+                                    widget.useTopSafeAreaInset ?? isMobile,
                               ),
-                      ),
-                      widget.customBottomWidget ??
-                          Input(
-                            isAttachmentUploading: widget.isAttachmentUploading,
-                            onAttachmentPressed: widget.onAttachmentPressed,
-                            onSendPressed: widget.onSendPressed,
-                            options: widget.inputOptions,
+                            ),
                           ),
-                    ],
                   ),
-                ),
-                if (_isImageViewVisible)
-                  ImageGallery(
-                    imageHeaders: widget.imageHeaders,
-                    images: _gallery,
-                    pageController: _galleryPageController!,
-                    onClosePressed: _onCloseGalleryPressed,
-                    options: widget.imageGalleryOptions,
-                  ),
-              ],
+                  widget.customBottomWidget ??
+                      Input(
+                        isAttachmentUploading: widget.isAttachmentUploading,
+                        onAttachmentPressed: widget.onAttachmentPressed,
+                        onSendPressed: widget.onSendPressed,
+                        options: widget.inputOptions,
+                      ),
+                ],
+              ),
             ),
           ),
         ),
@@ -611,12 +597,10 @@ class ChatState extends State<Chat> {
   }
 
   void _onCloseGalleryPressed() {
-    setState(() {
-      _isImageViewVisible = false;
-    });
     _galleryPageController?.dispose();
     _galleryPageController = null;
     widget.onCloseImageGallery?.call();
+    Navigator.of(context).pop();
   }
 
   void _onImagePressed(types.ImageMessage message) {
@@ -624,9 +608,18 @@ class ChatState extends State<Chat> {
       (element) => element.id == message.id && element.uri == message.uri,
     );
     _galleryPageController = PageController(initialPage: initialPage);
-    setState(() {
-      _isImageViewVisible = true;
-    });
+
+    Navigator.of(context).push(MaterialPageRoute(
+      builder: (context) => Scaffold(
+        body: ImageGallery(
+          imageHeaders: widget.imageHeaders,
+          images: _gallery,
+          pageController: _galleryPageController!,
+          onClosePressed: _onCloseGalleryPressed,
+          options: widget.imageGalleryOptions,
+        ),
+      ),
+    ));
   }
 
   void _onPreviewDataFetched(
