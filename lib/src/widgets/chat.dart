@@ -95,6 +95,7 @@ class Chat extends StatefulWidget {
     this.userAgent,
     this.useTopSafeAreaInset,
     this.videoMessageBuilder,
+    this.onCloseImageGallery,
   });
 
   /// See [Message.audioMessageBuilder].
@@ -321,6 +322,9 @@ class Chat extends StatefulWidget {
   /// See [Message.videoMessageBuilder].
   final Widget Function(types.VideoMessage, {required int messageWidth})?
       videoMessageBuilder;
+
+  /// Called when user taps on background.
+  final VoidCallback? onCloseImageGallery;
 
   @override
   State<Chat> createState() => ChatState();
@@ -612,6 +616,7 @@ class ChatState extends State<Chat> {
     });
     _galleryPageController?.dispose();
     _galleryPageController = null;
+    widget.onCloseImageGallery?.call();
   }
 
   void _onImagePressed(types.ImageMessage message) {
